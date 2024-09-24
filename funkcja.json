@@ -1,0 +1,105 @@
+const heaterEntityId = 'switch.cwu_grzalka_e_switch';
+const heaterPower = 3000;  // Zużycie mocy przez grzałkę 3000 W
+
+// Parametry, które można dostosować:
+const tempThreshold = 80;  // Temperatura, poniżej której grzałka może być włączona (domyślnie 80°C)
+const minFreePower = 1700; // Minimalna wymagana wolna moc, aby włączyć grzałkę (domyślnie -500 W)
+const minBatteryCapacity = 80;  // Minimalna wymagana pojemność baterii, aby włączyć grzałkę (domyślnie 80%)
+const toggleInterval = 1 * 60 * 1000;  // Minimalny czas między włączeniem a wyłączeniem grzałki (domyślnie 1 minuta)
+
+// Pobierz zapisane wartości z contextu
+let batteryCapacity = context.get('batteryCapacity');
+let temperature = context.get('temperature');
+let inverterPower = context.get('inverterPower');
+let batteryChargeDischargePower = context.get('batteryChargeDischargePower');
+let totalActivePower = context.get('totalActivePower');  // Eksportowana moc
+let heaterStatus = context.get('heaterStatus') || 'off';
+let lastToggleTime = context.get('lastToggleTime') || 0;
+let now = new Date().getTime();
+
+// Logowanie wartości początkowych
+node.warn(`Początkowe wartości: Battery Capacity: ${batteryCapacity}, Temperature: ${temperature}, Inverter Power: ${inverterPower}, Battery Charge/Discharge Power: ${batteryChargeDischargePower}, Total Active Power: ${totalActivePower}, Heater Status: ${heaterStatus}`);
+
+// Aktualizacja zmiennych w zależności od topicu
+if (msg.topic === 'sensor.batteries_state_of_capacity') {
+    let val = parseFloat(msg.payload);
+    if (!isNaN(val)) {
+        batteryCapacity = val;
+        context.set('batteryCapacity', batteryCapacity);
+        node.warn(`Zaktualizowana pojemność baterii: ${batteryCapacity}%`);
+    }
+} else if (msg.topic === 'sensor.sonoff_1001f72f05_temperature') {
+    let val = parseFloat(msg.payload);
+    if (!isNaN(val)) {
+        temperature = val;
+        context.set('temperature', temperature);
+        node.warn(`Zaktualizowana temperatura bojlera: ${temperature}°C`);
+    }
+} else if (msg.topic === 'sensor.inverter_input_power') {
+    let val = parseFloat(msg.payload);
+    if (!isNaN(val)) {
+        inverterPower = val;
+        context.set('inverterPower', inverterPower);
+        node.warn(`Zaktualizowana moc z fotowoltaiki (inverter power): ${inverterPower} W`);
+    }
+} else if (msg.topic === 'sensor.batteries_charge_discharge_power') {
+    let val = parseFloat(msg.payload);
+    if (!isNaN(val)) {
+        batteryChargeDischargePower = val;
+        context.set('batteryChargeDischargePower', batteryChargeDischargePower);
+        node.warn(`Zaktualizowana moc ładowania/rozładowania baterii: ${batteryChargeDischargePower} W`);
+    }
+} else if (msg.topic === 'sensor.total_active_power') {
+    let val = parseFloat(msg.payload);
+    if (!isNaN(val)) {
+        totalActivePower = val;
+        context.set('totalActivePower', totalActivePower);
+        node.warn(`Zaktualizowana moc eksportowana: ${totalActivePower} W`);
+    }
+}
+
+// Oblicz moc zużywaną przez dom: 
+// Zużycie = inverter_input_power + (-batteries_charge_discharge_power) + (-total_active_power)
+let powerUsedByHouse = inverterPower + (-batteryChargeDischargePower) + (-totalActivePower);
+node.warn(`Moc zużywana przez dom: ${powerUsedByHouse} W`);
+
+// Oblicz wolną moc: moc zużywana przez dom - moc grzałki
+let freePower = inverterPower - powerUsedByHouse + (heaterStatus === 'on' ? heaterPower : 0);
+node.warn(`Wolna moc: ${freePower} W`);
+
+// Sprawdzenie, czy można włączyć grzałkę:
+if (temperature < tempThreshold && freePower >= minFreePower && batteryCapacity >= minBatteryCapacity) {
+    // Sprawdzenie histerezy czasowej (czy upłynęło minimum toggleInterval):
+    if (now - lastToggleTime >= toggleInterval) {
+        if (heaterStatus !== 'on') {
+            node.warn(`Włączanie grzałki. Wolna moc: ${freePower} W, Temperatura: ${temperature}°C, Pojemność baterii: ${batteryCapacity}%`);
+            context.set('heaterStatus', 'on');
+            context.set('lastToggleTime', now);
+
+            msg.service = 'turn_on';
+            msg.payload = {
+                entity_id: heaterEntityId
+            };
+            return msg;
+        } else {
+            node.warn('Grzałka już jest włączona.');
+        }
+    } else {
+        node.warn('Za krótki czas od ostatniej zmiany stanu grzałki. Pomijam zmianę.');
+    }
+} else {
+    // Wyłączenie grzałki, jeśli warunki nie są spełnione:
+    if (heaterStatus !== 'off') {
+        node.warn(`Wyłączanie grzałki. Warunki niespełnione: Wolna moc: ${freePower} W, Temperatura: ${temperature}°C, Pojemność baterii: ${batteryCapacity}%`);
+        context.set('heaterStatus', 'off');
+        context.set('lastToggleTime', now);
+
+        msg.service = 'turn_off';
+        msg.payload = {
+            entity_id: heaterEntityId
+        };
+        return msg;
+    } else {
+        node.warn('Grzałka już jest wyłączona.');
+    }
+}

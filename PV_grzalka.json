@@ -1,0 +1,584 @@
+[
+    {
+        "id": "e90eb58cd98e8d4b",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "98c5e715b8e896c5",
+        "type": "junction",
+        "z": "e90eb58cd98e8d4b",
+        "x": 280,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2873995a6fb181b5",
+        "type": "junction",
+        "z": "e90eb58cd98e8d4b",
+        "x": 200,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7d122098b7d68e43",
+        "type": "server-state-changed",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Pojemność akumulatora",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entityId": "sensor.batteries_state_of_capacity",
+        "entityIdType": "exact",
+        "outputInitially": false,
+        "ifState": "",
+        "ifStateType": "str",
+        "outputOnlyOnStateChange": false,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 210,
+        "y": 40,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "b574aec395be3009",
+        "type": "server-state-changed",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Temperatura bojlera",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entityId": "sensor.sonoff_1001f72f05_temperature",
+        "entityIdType": "exact",
+        "outputInitially": false,
+        "ifState": "",
+        "ifStateType": "str",
+        "outputOnlyOnStateChange": false,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 190,
+        "y": 100,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "5ee93979a54a956b",
+        "type": "server-state-changed",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Moc z paneli",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entityId": "sensor.inverter_input_power",
+        "entityIdType": "exact",
+        "outputInitially": false,
+        "ifState": "",
+        "ifStateType": "str",
+        "outputOnlyOnStateChange": false,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 170,
+        "y": 160,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "ca753415eafaa20b",
+        "type": "function",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Sprawdź warunki",
+        "func": "const heaterEntityId = 'switch.cwu_grzalka_e_switch';\nconst heaterPower = 3000;  // Zużycie mocy przez grzałkę 3000 W\n\n// Parametry, które można dostosować:\nconst tempThreshold = 80;  // Temperatura, poniżej której grzałka może być włączona (domyślnie 80°C)\nconst minFreePower = 1700; // Minimalna wymagana wolna moc, aby włączyć grzałkę (domyślnie -500 W)\nconst minBatteryCapacity = 80;  // Minimalna wymagana pojemność baterii, aby włączyć grzałkę (domyślnie 80%)\nconst toggleInterval = 1 * 60 * 1000;  // Minimalny czas między włączeniem a wyłączeniem grzałki (domyślnie 1 minuta)\n\n// Pobierz zapisane wartości z contextu\nlet batteryCapacity = context.get('batteryCapacity');\nlet temperature = context.get('temperature');\nlet inverterPower = context.get('inverterPower');\nlet batteryChargeDischargePower = context.get('batteryChargeDischargePower');\nlet totalActivePower = context.get('totalActivePower');  // Eksportowana moc\nlet heaterStatus = context.get('heaterStatus') || 'off';\nlet lastToggleTime = context.get('lastToggleTime') || 0;\nlet now = new Date().getTime();\n\n// Logowanie wartości początkowych\nnode.warn(`Początkowe wartości: Battery Capacity: ${batteryCapacity}, Temperature: ${temperature}, Inverter Power: ${inverterPower}, Battery Charge/Discharge Power: ${batteryChargeDischargePower}, Total Active Power: ${totalActivePower}, Heater Status: ${heaterStatus}`);\n\n// Aktualizacja zmiennych w zależności od topicu\nif (msg.topic === 'sensor.batteries_state_of_capacity') {\n    let val = parseFloat(msg.payload);\n    if (!isNaN(val)) {\n        batteryCapacity = val;\n        context.set('batteryCapacity', batteryCapacity);\n        node.warn(`Zaktualizowana pojemność baterii: ${batteryCapacity}%`);\n    }\n} else if (msg.topic === 'sensor.sonoff_1001f72f05_temperature') {\n    let val = parseFloat(msg.payload);\n    if (!isNaN(val)) {\n        temperature = val;\n        context.set('temperature', temperature);\n        node.warn(`Zaktualizowana temperatura bojlera: ${temperature}°C`);\n    }\n} else if (msg.topic === 'sensor.inverter_input_power') {\n    let val = parseFloat(msg.payload);\n    if (!isNaN(val)) {\n        inverterPower = val;\n        context.set('inverterPower', inverterPower);\n        node.warn(`Zaktualizowana moc z fotowoltaiki (inverter power): ${inverterPower} W`);\n    }\n} else if (msg.topic === 'sensor.batteries_charge_discharge_power') {\n    let val = parseFloat(msg.payload);\n    if (!isNaN(val)) {\n        batteryChargeDischargePower = val;\n        context.set('batteryChargeDischargePower', batteryChargeDischargePower);\n        node.warn(`Zaktualizowana moc ładowania/rozładowania baterii: ${batteryChargeDischargePower} W`);\n    }\n} else if (msg.topic === 'sensor.total_active_power') {\n    let val = parseFloat(msg.payload);\n    if (!isNaN(val)) {\n        totalActivePower = val;\n        context.set('totalActivePower', totalActivePower);\n        node.warn(`Zaktualizowana moc eksportowana: ${totalActivePower} W`);\n    }\n}\n\n// Oblicz moc zużywaną przez dom: \n// Zużycie = inverter_input_power + (-batteries_charge_discharge_power) + (-total_active_power)\nlet powerUsedByHouse = inverterPower + (-batteryChargeDischargePower) + (-totalActivePower);\nnode.warn(`Moc zużywana przez dom: ${powerUsedByHouse} W`);\n\n// Oblicz wolną moc: moc zużywana przez dom - moc grzałki\nlet freePower = inverterPower - powerUsedByHouse + (heaterStatus === 'on' ? heaterPower : 0);\nnode.warn(`Wolna moc: ${freePower} W`);\n\n// Sprawdzenie, czy można włączyć grzałkę:\nif (temperature < tempThreshold && freePower >= minFreePower && batteryCapacity >= minBatteryCapacity) {\n    // Sprawdzenie histerezy czasowej (czy upłynęło minimum toggleInterval):\n    if (now - lastToggleTime >= toggleInterval) {\n        if (heaterStatus !== 'on') {\n            node.warn(`Włączanie grzałki. Wolna moc: ${freePower} W, Temperatura: ${temperature}°C, Pojemność baterii: ${batteryCapacity}%`);\n            context.set('heaterStatus', 'on');\n            context.set('lastToggleTime', now);\n\n            msg.service = 'turn_on';\n            msg.payload = {\n                entity_id: heaterEntityId\n            };\n            return msg;\n        } else {\n            node.warn('Grzałka już jest włączona.');\n        }\n    } else {\n        node.warn('Za krótki czas od ostatniej zmiany stanu grzałki. Pomijam zmianę.');\n    }\n} else {\n    // Wyłączenie grzałki, jeśli warunki nie są spełnione:\n    if (heaterStatus !== 'off') {\n        node.warn(`Wyłączanie grzałki. Warunki niespełnione: Wolna moc: ${freePower} W, Temperatura: ${temperature}°C, Pojemność baterii: ${batteryCapacity}%`);\n        context.set('heaterStatus', 'off');\n        context.set('lastToggleTime', now);\n\n        msg.service = 'turn_off';\n        msg.payload = {\n            entity_id: heaterEntityId\n        };\n        return msg;\n    } else {\n        node.warn('Grzałka już jest wyłączona.');\n    }\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 490,
+        "y": 180,
+        "wires": [
+            [
+                "cb3887e4f6797d71",
+                "2efdfb15d737ef98"
+            ]
+        ]
+    },
+    {
+        "id": "2efdfb15d737ef98",
+        "type": "api-call-service",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Włącz/wyłącz grzałkę",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "debugenabled": false,
+        "domain": "switch",
+        "service": "{{service}}",
+        "areaId": [],
+        "deviceId": [
+            "a2a79bf50c98757685841736f1dcc802"
+        ],
+        "entityId": [],
+        "data": "{\"entity_id\":\"{{payload.entity_id}}\"}",
+        "dataType": "json",
+        "mergeContext": "",
+        "mustacheAltTags": false,
+        "outputProperties": [],
+        "queue": "none",
+        "output_location": "",
+        "output_location_type": "none",
+        "x": 780,
+        "y": 180,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "cb3887e4f6797d71",
+        "type": "debug",
+        "z": "e90eb58cd98e8d4b",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 720,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "541d74163ef29c00",
+        "type": "server-state-changed",
+        "z": "e90eb58cd98e8d4b",
+        "name": "zyzycie_energii",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entityId": "sensor.inverter_active_power",
+        "entityIdType": "exact",
+        "outputInitially": false,
+        "ifState": "",
+        "ifStateType": "str",
+        "outputOnlyOnStateChange": false,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 180,
+        "y": 220,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "f4c58973381eb344",
+        "type": "server-state-changed",
+        "z": "e90eb58cd98e8d4b",
+        "name": "ladowanie/rozlaowanie baterii",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entityId": "sensor.batteries_charge_discharge_power",
+        "entityIdType": "exact",
+        "outputInitially": false,
+        "ifState": "",
+        "ifStateType": "str",
+        "outputOnlyOnStateChange": false,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 220,
+        "y": 280,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "bfc536f68f7a2e5b",
+        "type": "server-state-changed",
+        "z": "e90eb58cd98e8d4b",
+        "name": "exportPower",
+        "server": "f291fab4.981268",
+        "version": 5,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entityId": "sensor.total_active_power",
+        "entityIdType": "exact",
+        "outputInitially": false,
+        "ifState": "",
+        "ifStateType": "str",
+        "outputOnlyOnStateChange": false,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 170,
+        "y": 340,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "f35d8f8574d47525",
+        "type": "inject",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Temperatura bojlera",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "sensor.sonoff_1001f72f05_temperature",
+        "payload": "50",
+        "payloadType": "str",
+        "x": 210,
+        "y": 400,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "02128327c8a32b08",
+        "type": "inject",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Pojemność akumulatora",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "sensor.batteries_state_of_capacity",
+        "payload": "90",
+        "payloadType": "str",
+        "x": 450,
+        "y": 400,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "a02784bbfa6086ad",
+        "type": "inject",
+        "z": "e90eb58cd98e8d4b",
+        "name": "Moc z paneli",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "sensor.inverter_input_power",
+        "payload": "3600",
+        "payloadType": "str",
+        "x": 190,
+        "y": 440,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "5c92c199cdbdbd77",
+        "type": "inject",
+        "z": "e90eb58cd98e8d4b",
+        "name": "exportPower",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "sensor.total_active_power",
+        "payload": "0",
+        "payloadType": "str",
+        "x": 190,
+        "y": 560,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "e958633eed3ecf33",
+        "type": "inject",
+        "z": "e90eb58cd98e8d4b",
+        "name": "ladowanie/rozlaowanie baterii",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "sensor.batteries_charge_discharge_power",
+        "payload": "0",
+        "payloadType": "str",
+        "x": 240,
+        "y": 520,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "b4e5bfea39aefba1",
+        "type": "inject",
+        "z": "e90eb58cd98e8d4b",
+        "name": "zyzycie_energii",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "sensor.inverter_active_power",
+        "payload": "1000",
+        "payloadType": "str",
+        "x": 200,
+        "y": 480,
+        "wires": [
+            [
+                "ca753415eafaa20b"
+            ]
+        ]
+    },
+    {
+        "id": "f291fab4.981268",
+        "type": "server",
+        "name": "Home Assistant",
+        "addon": true
+    }
+]
